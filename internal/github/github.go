@@ -3,9 +3,10 @@ package github
 import (
 	"encoding/json"
 	"fmt"
-	"go.uber.org/zap/zapcore"
 	"io"
 	"net/http"
+
+	"go.uber.org/zap/zapcore"
 )
 
 const (

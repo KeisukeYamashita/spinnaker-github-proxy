@@ -2,9 +2,10 @@ package config
 
 import (
 	"context"
+	"testing"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/sethvargo/go-envconfig"
-	"testing"
 )
 
 func TestLoadConfig(t *testing.T) {
