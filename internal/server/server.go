@@ -9,11 +9,12 @@ import (
 	"os/signal"
 	"syscall"
 
+	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
+
 	"github.com/KeisukeYamashita/spinnaker-github-proxy/internal/config"
 	"github.com/KeisukeYamashita/spinnaker-github-proxy/internal/github"
 	proxy "github.com/KeisukeYamashita/spinnaker-github-proxy/internal/proxy"
-	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 )
 
 const (

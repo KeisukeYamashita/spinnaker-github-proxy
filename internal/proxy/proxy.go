@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"strings"
 
+	"go.uber.org/zap"
+
 	"github.com/KeisukeYamashita/spinnaker-github-proxy/internal/github"
 	"github.com/KeisukeYamashita/spinnaker-github-proxy/internal/server"
-	"go.uber.org/zap"
 )
 
 type Proxy interface {
