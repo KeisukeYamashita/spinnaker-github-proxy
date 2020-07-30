@@ -3,16 +3,17 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/KeisukeYamashita/spinnaker-github-proxy/internal/config"
-	"github.com/KeisukeYamashita/spinnaker-github-proxy/internal/github"
-	proxy "github.com/KeisukeYamashita/spinnaker-github-proxy/internal/proxy"
-	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/KeisukeYamashita/spinnaker-github-proxy/internal/config"
+	"github.com/KeisukeYamashita/spinnaker-github-proxy/internal/github"
+	proxy "github.com/KeisukeYamashita/spinnaker-github-proxy/internal/proxy"
+	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -20,13 +21,7 @@ const (
 	exitError = 1
 )
 
-var (
-	ErrResps = map[int]string{
-		http.StatusForbidden:  "authorization header missing",
-		http.StatusBadGateway: "upstream server err",
-		http.StatusBadRequest: "bad request",
-	}
-)
+var ErrResps = map[int]string{http.StatusForbidden: "authorization header missing", http.StatusBadGateway: "upstream server err", http.StatusBadRequest: "bad request"}
 
 type Option func(s *Server)
 
