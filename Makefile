@@ -18,3 +18,7 @@ cloudbuild:
 	 	--config=.cloudbuild.yaml \
 	 	--substitutions="_IMAGE=$(IMAGE),_GITHUB_TOKEN=$(GITHUB_TOKEN),_VERSION=$(VERSION),_SERVICE_NAME=$(SERVICE_NAME)"
 	 	--gcs-log-dir="gs://$(GCR_PROJECT)_cloudbuild/log" \
+
+.PHONY: run
+run:
+	@go run .
