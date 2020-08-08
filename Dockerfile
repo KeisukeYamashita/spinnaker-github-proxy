@@ -12,7 +12,7 @@ RUN go mod download
 COPY . ./
 
 RUN CGO_ENABLED=0 GOOS=linux go install -v \
-            -ldflags="-w -s -X main.version=${VERSION}" \
+            -ldflags="-w -s -X internal.version=${VERSION}" \
             .
 
 # Build Docker with Only Server Binary

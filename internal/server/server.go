@@ -16,6 +16,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+var version string
+
 const (
 	exitOk    = 0
 	exitError = 1
@@ -78,6 +80,7 @@ func newServer(cfg *ServerConfig, opts ...Option) (*Server, error) {
 		opt(s)
 	}
 
+	s.logger.With(zap.String("version", version))
 	p := proxy.NewProxyHandler(cfg.ghClient, proxy.WithOrganizationRestriction(cfg.allowedOrg), proxy.WithProxyLogger(s.logger.Named("proxy")))
 
 	server := &Server{
