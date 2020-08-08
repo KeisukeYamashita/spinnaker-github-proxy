@@ -127,6 +127,8 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 	for n, tc := range tcs {
 		tc := tc
 		t.Run(n, func(t *testing.T) {
+			t.Parallel()
+
 			ghClientMock := github.NewMockClient(ctrl)
 
 			var errGetUserInfo error = nil
