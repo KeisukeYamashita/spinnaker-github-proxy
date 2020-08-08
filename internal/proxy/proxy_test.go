@@ -41,6 +41,16 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			&http.Response{Body: &http.NoBody},
 			false,
 		},
+		"ok bypass": {
+			http.StatusOK,
+			true,
+			testBearer + "token",
+			"",
+			[]github.Organization{{testAllowedOrg}, {"keke-test"}},
+			false,
+			&http.Response{Body: &http.NoBody},
+			false,
+		},
 		"not belonging to org": {
 			http.StatusForbidden,
 			true,
