@@ -1,6 +1,7 @@
 # Spinnaker GitHub Proxy
 
 ![Test](https://github.com/KeisukeYamashita/spinnaker-github-proxy/workflows/Test/badge.svg?branch=master)
+[![codecov](https://codecov.io/gh/KeisukeYamashita/spinnaker-github-proxy/branch/master/graph/badge.svg?token=fQSLEMs6Db)](https://codecov.io/gh/KeisukeYamashita/spinnaker-github-proxy)
 
 `spinnaker-github-proxy` proxies user info request from Spinnaker. By default, Spinnaker's GitHub Organization authentication only reads public members. 
 This proxy will allow to fetch private members and return the judge if the user can access or not.
