@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -9,6 +10,30 @@ import (
 )
 
 func TestLoadConfig(t *testing.T) {
+	tcs := map[string]struct {
+		want *Config
+	}{
+		"ok": {&Config{Port: 8080, Organization: "KeisukeYamashita"}},
+	}
+
+	for n, tc := range tcs {
+		tc := tc
+		t.Run(n, func(t *testing.T) {
+			os.Setenv("PORT", "8080")
+			os.Setenv("ORGANIZATION", "KeisukeYamashita")
+			got, err := LoadConfig(context.Background())
+			if err != nil {
+				t.Errorf("failed: %v", err)
+			}
+
+			if diff := cmp.Diff(got, tc.want); diff != "" {
+				t.Errorf("There are diffs(got(-), want(+)):%s", diff)
+			}
+		})
+	}
+}
+
+func TestLoadConfig_withlookup(t *testing.T) {
 	tcs := map[string]struct {
 		shouldPass bool
 		lookuper   envconfig.Lookuper

@@ -41,6 +41,16 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			&http.Response{Body: &http.NoBody},
 			false,
 		},
+		"ok bypass": {
+			http.StatusOK,
+			true,
+			testBearer + "token",
+			"",
+			[]github.Organization{{testAllowedOrg}, {"keke-test"}},
+			false,
+			&http.Response{Body: &http.NoBody},
+			false,
+		},
 		"not belonging to org": {
 			http.StatusForbidden,
 			true,
@@ -54,7 +64,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 		"empty authorization token": {
 			http.StatusBadRequest,
 			false,
-			testBearer + "token",
+			testBearer,
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			false,
@@ -74,8 +84,8 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 		"wrong format authorization token": {
 			http.StatusBadRequest,
 			true,
-			testAllowedOrg,
 			testBearer + "WRONG TOKEN FORMAT",
+			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			false,
 			&http.Response{Body: &http.NoBody},
@@ -84,7 +94,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 		"wrong token type": {
 			http.StatusBadRequest,
 			true,
-			"oauth",
+			"oauth TOKEN",
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			false,
@@ -117,6 +127,8 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 	for n, tc := range tcs {
 		tc := tc
 		t.Run(n, func(t *testing.T) {
+			t.Parallel()
+
 			ghClientMock := github.NewMockClient(ctrl)
 
 			var errGetUserInfo error = nil

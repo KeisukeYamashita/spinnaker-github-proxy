@@ -84,13 +84,6 @@ func (p *proxy) oauthProxyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if str[1] == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(errResps[http.StatusBadRequest]))
-		p.logger.Error("bad request, empty token")
-		return
-	}
-
 	tokenType, token := str[0], str[1]
 	if strings.ToLower(tokenType) != "bearer" {
 		w.WriteHeader(http.StatusBadRequest)
