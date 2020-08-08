@@ -1,12 +1,7 @@
 # Build Go Server Binary
 FROM golang:1.14.4
 
-ARG GITHUB_TOKEN
-ARG SERVICE_NAME
 ARG VERSION
-
-# GITHUB_TOKEN is used to fetch codes from private repository
-RUN echo "machine github.com login $GITHUB_TOKEN" > ~/.netrc
 
 WORKDIR /project
 
@@ -17,7 +12,7 @@ RUN go mod download
 COPY . ./
 
 RUN CGO_ENABLED=0 GOOS=linux go install -v \
-            -ldflags="-w -s -X main.version=${VERSION} -X main.serviceName=${SERVICE_NAME}" \
+            -ldflags="-w -s -X main.version=${VERSION}" \
             .
 
 # Build Docker with Only Server Binary
@@ -25,9 +20,9 @@ FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates
 
-COPY --from=0 /go/bin/gh-proxy-authn /bin/server
+COPY --from=0 /go/bin/spinnaker-github-proxy /bin/server
 
-RUN addgroup -g 1001 keke && adduser -D -G keke -u 1001 keke
+RUN addgroup -g 1001 KeisukeYamashita && adduser -D -G KeisukeYamashita -u 1001 KeisueYamashita
 
 USER 1001
 

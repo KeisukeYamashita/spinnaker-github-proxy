@@ -11,6 +11,10 @@ IMAGE := $(REGISTRY)/$(SERVICE_NAME):$(VERSION)
 test:
 	@go test ./...
 
+.PHONY: build
+build:
+	@docker build . --build-arg VERSION=$(VERSION)
+
 .PHONY: cloudbuild
 cloudbuild:
 	@gcloud builds submit . \
