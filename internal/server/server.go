@@ -9,20 +9,17 @@ import (
 	"os/signal"
 	"syscall"
 
-	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
-
 	"github.com/KeisukeYamashita/spinnaker-github-proxy/internal/config"
 	"github.com/KeisukeYamashita/spinnaker-github-proxy/internal/github"
 	proxy "github.com/KeisukeYamashita/spinnaker-github-proxy/internal/proxy"
+	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
 	exitOk    = 0
 	exitError = 1
 )
-
-var ErrResps = map[int]string{http.StatusForbidden: "authorization header missing", http.StatusBadGateway: "upstream server err", http.StatusBadRequest: "bad request"}
 
 type Option func(s *Server)
 
@@ -81,10 +78,7 @@ func newServer(cfg *ServerConfig, opts ...Option) (*Server, error) {
 		opt(s)
 	}
 
-	var p proxy.Proxy
-	if s.logger != nil {
-		p = proxy.NewProxyHandler(cfg.ghClient, proxy.WithOrganizationRestriction(cfg.allowedOrg), proxy.WithProxyLogger(s.logger.Named("proxy")))
-	}
+	p := proxy.NewProxyHandler(cfg.ghClient, proxy.WithOrganizationRestriction(cfg.allowedOrg), proxy.WithProxyLogger(s.logger.Named("proxy")))
 
 	server := &Server{
 		mux:   http.NewServeMux(),
@@ -105,11 +99,13 @@ func run(ctx context.Context) int {
 
 	cfg, err := config.LoadConfig(ctx)
 	if err != nil {
+		logger.Error("failed to load config", zap.Error(err))
 		return exitError
 	}
 
 	conn, err := net.Listen("tcp", cfg.Address())
 	if err != nil {
+		logger.Error("failed to listen server", zap.Error(err))
 		return exitError
 	}
 	logger.Info("http server listening", zap.String("address", cfg.Address()))
@@ -121,6 +117,7 @@ func run(ctx context.Context) int {
 			allowedOrg: cfg.Organization,
 		}, WithLogger(logger))
 	if err != nil {
+		logger.Error("failed to initiate server", zap.Error(err))
 		return exitError
 	}
 

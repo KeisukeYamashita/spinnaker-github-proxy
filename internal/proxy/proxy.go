@@ -1,14 +1,21 @@
 package proxy
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
 
-	"go.uber.org/zap"
-
 	"github.com/KeisukeYamashita/spinnaker-github-proxy/internal/github"
-	"github.com/KeisukeYamashita/spinnaker-github-proxy/internal/server"
+	"go.uber.org/zap"
+)
+
+var (
+	errResps = map[int]string{
+		http.StatusForbidden:  "authorization header missing",
+		http.StatusBadGateway: "upstream server err",
+		http.StatusBadRequest: "bad request",
+	}
 )
 
 type Proxy interface {
@@ -61,8 +68,8 @@ func (p *proxy) oauthProxyHandler(w http.ResponseWriter, r *http.Request) {
 
 	header := r.Header.Get("Authorization")
 	if header == "" {
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(server.ErrResps[http.StatusForbidden]))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(errResps[http.StatusBadRequest]))
 		p.logger.Error("no authorization header")
 		return
 	}
@@ -70,10 +77,12 @@ func (p *proxy) oauthProxyHandler(w http.ResponseWriter, r *http.Request) {
 	str := strings.Split(header, " ")
 	if len(str) != 2 {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(server.ErrResps[http.StatusBadRequest]))
+		w.Write([]byte(errResps[http.StatusBadRequest]))
 		p.logger.Error("bad request")
 		return
 	}
+
+	fmt.Println(str[0], str[1])
 
 	tokenType, token := str[0], str[1]
 	if strings.ToLower(tokenType) != "bearer" {
