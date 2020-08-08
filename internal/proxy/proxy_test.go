@@ -54,7 +54,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 		"empty authorization token": {
 			http.StatusBadRequest,
 			false,
-			testBearer + "token",
+			testBearer,
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			false,
@@ -74,8 +74,8 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 		"wrong format authorization token": {
 			http.StatusBadRequest,
 			true,
-			testAllowedOrg,
 			testBearer + "WRONG TOKEN FORMAT",
+			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			false,
 			&http.Response{Body: &http.NoBody},
@@ -84,7 +84,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 		"wrong token type": {
 			http.StatusBadRequest,
 			true,
-			"oauth",
+			"oauth TOKEN",
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			false,
