@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -26,7 +27,9 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 		token                  string
 		allowedOrg             string
 		getOrgs                github.Organizations
+		failGetOrgs            bool
 		getUserInfo            *http.Response
+		failGetUserInfo        bool
 	}{
 		"ok": {
 			http.StatusOK,
@@ -34,7 +37,9 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testBearer + "token",
 			testAllowedOrg,
 			[]github.Organization{{testAllowedOrg}, {"keke-test"}},
+			false,
 			&http.Response{Body: &http.NoBody},
+			false,
 		},
 		"not belonging to org": {
 			http.StatusForbidden,
@@ -42,7 +47,9 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testBearer + "token",
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
+			false,
 			&http.Response{Body: &http.NoBody},
+			false,
 		},
 		"empty authorization token": {
 			http.StatusBadRequest,
@@ -50,7 +57,9 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testBearer + "token",
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
+			false,
 			&http.Response{Body: &http.NoBody},
+			false,
 		},
 		"missing authorization token": {
 			http.StatusBadRequest,
@@ -58,23 +67,49 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testBearer,
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
+			false,
 			&http.Response{Body: &http.NoBody},
+			false,
 		},
 		"wrong format authorization token": {
 			http.StatusBadRequest,
-			false,
+			true,
 			testAllowedOrg,
 			testBearer + "WRONG TOKEN FORMAT",
 			[]github.Organization{{"keke-test"}},
+			false,
 			&http.Response{Body: &http.NoBody},
+			false,
 		},
 		"wrong token type": {
 			http.StatusBadRequest,
-			false,
+			true,
 			"oauth",
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
+			false,
 			&http.Response{Body: &http.NoBody},
+			false,
+		},
+		"failed to get user info": {
+			http.StatusBadGateway,
+			true,
+			testBearer + "token",
+			testAllowedOrg,
+			[]github.Organization{{"keke-test"}},
+			false,
+			&http.Response{Body: &http.NoBody},
+			true,
+		},
+		"failed to get orgs": {
+			http.StatusBadGateway,
+			true,
+			testBearer + "token",
+			testAllowedOrg,
+			[]github.Organization{{"keke-test"}},
+			true,
+			&http.Response{Body: &http.NoBody},
+			false,
 		},
 	}
 
@@ -83,8 +118,20 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 		tc := tc
 		t.Run(n, func(t *testing.T) {
 			ghClientMock := github.NewMockClient(ctrl)
-			ghClientMock.EXPECT().GetUserInfo(gomock.Any()).Return(tc.getUserInfo, nil).AnyTimes()
-			ghClientMock.EXPECT().GetOrgs(gomock.Any()).Return(tc.getOrgs, nil).AnyTimes()
+
+			var errGetUserInfo error = nil
+			var errGetOrg error = nil
+
+			if tc.failGetOrgs {
+				errGetOrg = errors.New("failed to get org")
+			}
+
+			if tc.failGetUserInfo {
+				errGetUserInfo = errors.New("failed to get user info")
+			}
+
+			ghClientMock.EXPECT().GetUserInfo(gomock.Any()).Return(tc.getUserInfo, errGetUserInfo).AnyTimes()
+			ghClientMock.EXPECT().GetOrgs(gomock.Any()).Return(tc.getOrgs, errGetOrg).AnyTimes()
 			proxy := NewProxyHandler(ghClientMock, WithOrganizationRestriction(tc.allowedOrg), WithProxyLogger(logger))
 
 			req, err := http.NewRequest("POST", "/", nil)

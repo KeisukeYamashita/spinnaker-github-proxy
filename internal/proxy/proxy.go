@@ -68,8 +68,6 @@ func (p *proxy) OAuthProxyHandler() http.Handler {
 }
 
 func (p *proxy) oauthProxyHandler(w http.ResponseWriter, r *http.Request) {
-	defer p.logger.Info("proxied request")
-
 	header := r.Header.Get("Authorization")
 	if header == "" {
 		w.WriteHeader(http.StatusBadRequest)
