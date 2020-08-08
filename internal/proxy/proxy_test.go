@@ -13,6 +13,7 @@ import (
 
 const (
 	testAllowedOrg = "testOrg"
+	testBearer     = "Bearer "
 )
 
 func TestProxy_OAuthProxyHandler(t *testing.T) {
@@ -21,25 +22,57 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 
 	tcs := map[string]struct {
 		wantStatusCode         int
-		withAuthorazationToken bool
+		withAuthorizationToken bool
+		token                  string
+		allowedOrg             string
 		getOrgs                github.Organizations
 		getUserInfo            *http.Response
 	}{
 		"ok": {
 			http.StatusOK,
 			true,
+			testBearer + "token",
+			testAllowedOrg,
 			[]github.Organization{{testAllowedOrg}, {"keke-test"}},
 			&http.Response{Body: &http.NoBody},
 		},
 		"not belonging to org": {
 			http.StatusForbidden,
 			true,
+			testBearer + "token",
+			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			&http.Response{Body: &http.NoBody},
 		},
 		"empty authorization token": {
 			http.StatusBadRequest,
 			false,
+			testBearer + "token",
+			testAllowedOrg,
+			[]github.Organization{{"keke-test"}},
+			&http.Response{Body: &http.NoBody},
+		},
+		"missing authorization token": {
+			http.StatusBadRequest,
+			false,
+			testBearer,
+			testAllowedOrg,
+			[]github.Organization{{"keke-test"}},
+			&http.Response{Body: &http.NoBody},
+		},
+		"wrong format authorization token": {
+			http.StatusBadRequest,
+			false,
+			testAllowedOrg,
+			testBearer + "WRONG TOKEN FORMAT",
+			[]github.Organization{{"keke-test"}},
+			&http.Response{Body: &http.NoBody},
+		},
+		"wrong token type": {
+			http.StatusBadRequest,
+			false,
+			"oauth",
+			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			&http.Response{Body: &http.NoBody},
 		},
@@ -52,15 +85,11 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			ghClientMock := github.NewMockClient(ctrl)
 			ghClientMock.EXPECT().GetUserInfo(gomock.Any()).Return(tc.getUserInfo, nil).AnyTimes()
 			ghClientMock.EXPECT().GetOrgs(gomock.Any()).Return(tc.getOrgs, nil).AnyTimes()
-			proxy := proxy{
-				ghClient:   ghClientMock,
-				allowedOrg: testAllowedOrg,
-				logger:     logger,
-			}
+			proxy := NewProxyHandler(ghClientMock, WithOrganizationRestriction(tc.allowedOrg), WithProxyLogger(logger))
 
 			req, err := http.NewRequest("POST", "/", nil)
-			if tc.withAuthorazationToken {
-				req.Header.Add("Authorization", "Bearer TOKEN")
+			if tc.withAuthorizationToken {
+				req.Header.Add("Authorization", tc.token)
 			}
 
 			if err != nil {
