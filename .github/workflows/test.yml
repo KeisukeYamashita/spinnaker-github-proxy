@@ -28,4 +28,8 @@ jobs:
       - name: Build provider
         run: go build -v
       - name: Run Test
-        run: go test -v ./...
+        run: go test -v ./... -coverprofile=coverage.txt -covermode=atomic
+      - name: Report test coverage
+        run: bash <(curl -s https://codecov.io/bash)
+        env:
+          CODECOV_TOKEN: ${{ secret.CODECOV_TOKEN }}
