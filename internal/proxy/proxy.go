@@ -70,26 +70,23 @@ func (p *proxy) OAuthProxyHandler() http.Handler {
 func (p *proxy) oauthProxyHandler(w http.ResponseWriter, r *http.Request) {
 	header := r.Header.Get("Authorization")
 	if header == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(errResps[http.StatusBadRequest]))
 		p.logger.Error("no authorization header")
+		http.Error(w, "no authorization header", http.StatusBadRequest)
 		return
 	}
 
 	str := strings.Split(header, " ")
 	if len(str) != 2 {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(errResps[http.StatusBadRequest]))
 		p.logger.Error("bad request")
+		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
 
 	tokenType, token := str[0], str[1]
 	if strings.ToLower(tokenType) != "bearer" {
-		w.WriteHeader(http.StatusBadRequest)
 		msg := "token type should be bearer type"
-		w.Write([]byte(msg))
 		p.logger.Error("msg", zap.String("tokenType", tokenType))
+		http.Error(w, msg, http.StatusBadRequest)
 		return
 	}
 
@@ -97,8 +94,7 @@ func (p *proxy) oauthProxyHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		msg := "error while getting user info"
 		p.logger.Error(msg, zap.Error(err))
-		w.WriteHeader(http.StatusBadGateway)
-		w.Write([]byte(msg))
+		http.Error(w, msg, http.StatusBadGateway)
 		return
 	}
 
@@ -106,8 +102,7 @@ func (p *proxy) oauthProxyHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		msg := "error while getting user's organization info"
 		p.logger.Error(msg, zap.Error(err))
-		w.WriteHeader(http.StatusBadGateway)
-		w.Write([]byte(msg))
+		http.Error(w, msg, http.StatusBadGateway)
 		return
 	}
 
@@ -118,9 +113,7 @@ func (p *proxy) oauthProxyHandler(w http.ResponseWriter, r *http.Request) {
 			b, err := json.Marshal(u)
 			if err != nil {
 				msg := "failed to marshal body"
-				p.logger.Error(msg, zap.Error(err))
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(msg))
+				http.Error(w, msg, http.StatusInternalServerError)
 				return
 			}
 			w.Write(b)
@@ -129,8 +122,7 @@ func (p *proxy) oauthProxyHandler(w http.ResponseWriter, r *http.Request) {
 
 		msg := "user is not a member of allowed orgs"
 		p.logger.Info(msg, zap.String("allowedOrganization", p.allowedOrg), zap.Array("organizations", orgs), zap.String("user", u.Login))
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(msg))
+		http.Error(w, msg, http.StatusForbidden)
 		return
 	}
 
