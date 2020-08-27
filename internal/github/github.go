@@ -84,6 +84,7 @@ func (c client) GetUserInfo(token string) (*UserInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		err := decodeError(resp.Body)
