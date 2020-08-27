@@ -3,7 +3,7 @@ GIT_REF := $(shell git rev-parse --short=7 HEAD)
 VERSION ?= commit-$(GIT_REF)
 
 # Setup GCP Registry Variables
-GCR_PROJECT := kouzoh-p-keisuke-yamashita
+GCR_PROJECT :=
 REGISTRY := gcr.io/$(GCR_PROJECT)
 IMAGE := $(REGISTRY)/$(SERVICE_NAME):$(VERSION)
 
