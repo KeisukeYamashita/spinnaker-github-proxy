@@ -105,7 +105,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			false,
-			getTestUserInfo("KeisukeYamashita"),
+			getTestUserInfo(t, "KeisukeYamashita"),
 			false,
 		},
 		"failed to get user info": {
@@ -115,7 +115,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			false,
-			getTestUserInfo("KeisukeYamashita"),
+			getTestUserInfo(t, "KeisukeYamashita"),
 			true,
 		},
 		"failed to get orgs": {
@@ -125,7 +125,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			true,
-			getTestUserInfo("KeisukeYamashita"),
+			getTestUserInfo(t, "KeisukeYamashita"),
 			false,
 		},
 	}
