@@ -17,7 +17,8 @@ const (
 	testBearer     = "Bearer "
 )
 
-func getUserInfo(login string) *github.UserInfo {
+func getTestUserInfo(t *testing.T, login string) *github.UserInfo {
+	t.Helper()
 	return &github.UserInfo{
 		Login: login,
 	}
@@ -44,7 +45,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testAllowedOrg,
 			[]github.Organization{{testAllowedOrg}, {"keke-test"}},
 			false,
-			getUserInfo("KeisukeYamashita"),
+			getTestUserInfo(t, "KeisukeYamashita"),
 			false,
 		},
 		"ok bypass": {
@@ -54,7 +55,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			"",
 			[]github.Organization{{testAllowedOrg}, {"keke-test"}},
 			false,
-			getUserInfo("KeisukeYamashita"),
+			getTestUserInfo(t, "KeisukeYamashita"),
 			false,
 		},
 		"not belonging to org": {
@@ -64,7 +65,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			false,
-			getUserInfo("KeisukeYamashita"),
+			getTestUserInfo(t, "KeisukeYamashita"),
 			false,
 		},
 		"empty authorization token": {
@@ -74,7 +75,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			false,
-			getUserInfo("KeisukeYamashita"),
+			getTestUserInfo(t, "KeisukeYamashita"),
 			false,
 		},
 		"missing authorization token": {
@@ -84,7 +85,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			false,
-			getUserInfo("KeisukeYamashita"),
+			getTestUserInfo(t, "KeisukeYamashita"),
 			false,
 		},
 		"wrong format authorization token": {
@@ -94,7 +95,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			false,
-			getUserInfo("KeisukeYamashita"),
+			getTestUserInfo(t, "KeisukeYamashita"),
 			false,
 		},
 		"wrong token type": {
@@ -104,7 +105,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			false,
-			getUserInfo("KeisukeYamashita"),
+			getTestUserInfo("KeisukeYamashita"),
 			false,
 		},
 		"failed to get user info": {
@@ -114,7 +115,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			false,
-			getUserInfo("KeisukeYamashita"),
+			getTestUserInfo("KeisukeYamashita"),
 			true,
 		},
 		"failed to get orgs": {
@@ -124,7 +125,7 @@ func TestProxy_OAuthProxyHandler(t *testing.T) {
 			testAllowedOrg,
 			[]github.Organization{{"keke-test"}},
 			true,
-			getUserInfo("KeisukeYamashita"),
+			getTestUserInfo("KeisukeYamashita"),
 			false,
 		},
 	}
