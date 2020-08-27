@@ -5,10 +5,8 @@
 package github
 
 import (
-	http "net/http"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockClient is a mock of Client interface
@@ -35,10 +33,10 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // GetUserInfo mocks base method
-func (m *MockClient) GetUserInfo(arg0 string) (*http.Response, error) {
+func (m *MockClient) GetUserInfo(arg0 string) (*UserInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserInfo", arg0)
-	ret0, _ := ret[0].(*http.Response)
+	ret0, _ := ret[0].(*UserInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

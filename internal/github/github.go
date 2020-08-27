@@ -22,7 +22,7 @@ type ErrorResponse struct {
 }
 
 type Client interface {
-	GetUserInfo(string) (*http.Response, error)
+	GetUserInfo(string) (*UserInfo, error)
 	GetOrgs(string) (Organizations, error)
 }
 
@@ -73,7 +73,7 @@ type UserInfo struct {
 	Login string `json:"login,omitempty"`
 }
 
-func (c client) GetUserInfo(token string) (*http.Response, error) {
+func (c client) GetUserInfo(token string) (*UserInfo, error) {
 	req, err := http.NewRequest("GET", c.baseURL+"/"+userInfoPath, nil)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,12 @@ func (c client) GetUserInfo(token string) (*http.Response, error) {
 		return nil, fmt.Errorf("request failed with status code %d with message %s", resp.StatusCode, err.Message)
 	}
 
-	return resp, nil
+	var u UserInfo
+	if err := json.NewDecoder(resp.Body).Decode(&u); err != nil {
+		return nil, err
+	}
+
+	return &u, nil
 }
 
 func (c client) GetOrgs(token string) (Organizations, error) {

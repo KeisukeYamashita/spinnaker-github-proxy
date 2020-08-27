@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"strings"
 
@@ -94,20 +93,11 @@ func (p *proxy) oauthProxyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userInfoResp, err := p.ghClient.GetUserInfo(token)
+	u, err := p.ghClient.GetUserInfo(token)
 	if err != nil {
 		msg := "error while getting user info"
 		p.logger.Error(msg, zap.Error(err))
 		w.WriteHeader(http.StatusBadGateway)
-		w.Write([]byte(msg))
-		return
-	}
-
-	var u github.UserInfo
-	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		msg := "failed to unmarshal user"
-		p.logger.Error(msg, zap.Error(err))
-		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(msg))
 		return
 	}
@@ -125,7 +115,15 @@ func (p *proxy) oauthProxyHandler(w http.ResponseWriter, r *http.Request) {
 		if orgs.LoggedInto(p.allowedOrg) {
 			p.logger.Info("organization belonging user", zap.String("allowedOrganization", p.allowedOrg), zap.Array("organizations", orgs), zap.String("user", u.Login))
 			w.Header().Set("Content-Type", "application/json")
-			io.Copy(w, userInfoResp.Body)
+			b, err := json.Marshal(u)
+			if err != nil {
+				msg := "failed to marshal body"
+				p.logger.Error(msg, zap.Error(err))
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(msg))
+				return
+			}
+			w.Write(b)
 			return
 		}
 
