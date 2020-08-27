@@ -22,7 +22,7 @@ type ErrorResponse struct {
 }
 
 type Client interface {
-	GetUserInfo(string) (*http.Response, error)
+	GetUserInfo(string) (*UserInfo, error)
 	GetOrgs(string) (Organizations, error)
 }
 
@@ -69,7 +69,11 @@ func (orgs Organizations) MarshalLogArray(encoder zapcore.ArrayEncoder) error {
 	return nil
 }
 
-func (c client) GetUserInfo(token string) (*http.Response, error) {
+type UserInfo struct {
+	Login string `json:"login,omitempty"`
+}
+
+func (c client) GetUserInfo(token string) (*UserInfo, error) {
 	req, err := http.NewRequest("GET", c.baseURL+"/"+userInfoPath, nil)
 	if err != nil {
 		return nil, err
@@ -80,13 +84,19 @@ func (c client) GetUserInfo(token string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		err := decodeError(resp.Body)
 		return nil, fmt.Errorf("request failed with status code %d with message %s", resp.StatusCode, err.Message)
 	}
 
-	return resp, nil
+	var u UserInfo
+	if err := json.NewDecoder(resp.Body).Decode(&u); err != nil {
+		return nil, err
+	}
+
+	return &u, nil
 }
 
 func (c client) GetOrgs(token string) (Organizations, error) {
