@@ -69,6 +69,10 @@ func (orgs Organizations) MarshalLogArray(encoder zapcore.ArrayEncoder) error {
 	return nil
 }
 
+type UserInfo struct {
+	Login string `json:"login,omitempty"`
+}
+
 func (c client) GetUserInfo(token string) (*http.Response, error) {
 	req, err := http.NewRequest("GET", c.baseURL+"/"+userInfoPath, nil)
 	if err != nil {

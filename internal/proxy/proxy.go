@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"strings"
@@ -102,6 +103,15 @@ func (p *proxy) oauthProxyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var u github.UserInfo
+	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
+		msg := "failed to unmarshal user"
+		p.logger.Error(msg, zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(msg))
+		return
+	}
+
 	orgs, err := p.ghClient.GetOrgs(token)
 	if err != nil {
 		msg := "error while getting user's organization info"
@@ -113,21 +123,21 @@ func (p *proxy) oauthProxyHandler(w http.ResponseWriter, r *http.Request) {
 
 	if p.allowedOrg != "" {
 		if orgs.LoggedInto(p.allowedOrg) {
-			p.logger.Info("organization belonging user", zap.String("allowedOrganization", p.allowedOrg), zap.Array("organizations", orgs))
+			p.logger.Info("organization belonging user", zap.String("allowedOrganization", p.allowedOrg), zap.Array("organizations", orgs), zap.String("user", u.Login))
 			w.Header().Set("Content-Type", "application/json")
 			io.Copy(w, userInfoResp.Body)
 			return
 		}
 
 		msg := "user is not a member of allowed orgs"
-		p.logger.Info(msg, zap.String("allowedOrganization", p.allowedOrg), zap.Array("organizations", orgs))
+		p.logger.Info(msg, zap.String("allowedOrganization", p.allowedOrg), zap.Array("organizations", orgs), zap.String("user", u.Login))
 		w.WriteHeader(http.StatusForbidden)
 		w.Write([]byte(msg))
 		return
 	}
 
 	msg := "user is allowed to bypass with any GitHub Organization"
-	p.logger.Info(msg, zap.Array("organizations", orgs))
+	p.logger.Info(msg, zap.Array("organizations", orgs), zap.String("user", u.Login))
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(msg))
 }
